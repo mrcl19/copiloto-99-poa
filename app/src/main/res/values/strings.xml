@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Copiloto 99 POA</string>
+    <string name="accessibility_service_label">Copiloto 99 POA — Leitor de Corridas</string>
+    <string name="accessibility_service_description">Lê os valores, distância e tempo do card de chamada da 99 para calcular R$/km, R$/min e exibir o semáforo flutuante.</string>
+</resources>
