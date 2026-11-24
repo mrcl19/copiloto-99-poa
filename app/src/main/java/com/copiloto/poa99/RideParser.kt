@@ -5,24 +5,22 @@ import java.util.regex.Pattern
 
 object RideParser {
 
-    private val FARE_PATTERN = Pattern.compile("R\$\s*(\d+[.,]\d{2})")
-    private val KM_PATTERN = Pattern.compile("(\d+[.,]?\d*)\s*km", Pattern.CASE_INSENSITIVE)
-    private val METER_PATTERN = Pattern.compile("(\d+)\s*m\b", Pattern.CASE_INSENSITIVE)
-    private val MIN_PATTERN = Pattern.compile("(\d+)\s*min", Pattern.CASE_INSENSITIVE)
-    private val RATING_PATTERN = Pattern.compile("\b([45][.,]\d{2})\b")
+    private val FARE_PATTERN = Pattern.compile("""R\$\s*(\d+[.,]\d{2})""")
+    private val KM_PATTERN = Pattern.compile("""(\d+[.,]?\d*)\s*km""", Pattern.CASE_INSENSITIVE)
+    private val METER_PATTERN = Pattern.compile("""(\d+)\s*m\b""", Pattern.CASE_INSENSITIVE)
+    private val MIN_PATTERN = Pattern.compile("""(\d+)\s*min""", Pattern.CASE_INSENSITIVE)
+    private val RATING_PATTERN = Pattern.compile("""\b([45][.,]\d{2})\b""")
 
     fun parseFromTexts(texts: List<String>): RideOffer? {
         if (texts.isEmpty()) return null
         val fullText = texts.joinToString(" | ")
         val lowerText = fullText.lowercase(Locale.getDefault())
 
-        // Verifica se a tela parece ser um card de oferta de corrida
         val hasOfferKeywords = lowerText.contains("aceitar") ||
                 lowerText.contains("recusar") ||
-                lowerText.contains("min") && lowerText.contains("km")
+                (lowerText.contains("min") && lowerText.contains("km"))
         if (!hasOfferKeywords) return null
 
-        // 1. Extrai valor da corrida (R$)
         val fareMatcher = FARE_PATTERN.matcher(fullText)
         var fare = 0.0
         while (fareMatcher.find()) {
@@ -34,7 +32,6 @@ object RideParser {
         }
         if (fare <= 0.0) return null
 
-        // 2. Extrai distâncias (km e metros)
         val distancesKm = mutableListOf<Double>()
         val kmMatcher = KM_PATTERN.matcher(fullText)
         while (kmMatcher.find()) {
@@ -64,7 +61,6 @@ object RideParser {
             else -> return null
         }
 
-        // 3. Extrai tempos (minutos)
         val durationsMin = mutableListOf<Int>()
         val minMatcher = MIN_PATTERN.matcher(fullText)
         while (minMatcher.find()) {
@@ -78,14 +74,12 @@ object RideParser {
             else -> (totalKm * 2.2).toInt().coerceAtLeast(3)
         }
 
-        // 4. Extrai nota do passageiro
         var rating: Double? = null
         val ratingMatcher = RATING_PATTERN.matcher(fullText)
         if (ratingMatcher.find()) {
             rating = ratingMatcher.group(1)?.replace(",", ".")?.toDoubleOrNull()
         }
 
-        // 5. Forma de pagamento e conta nova
         val isCash = lowerText.contains("dinheiro") || lowerText.contains("espécie") || lowerText.contains("especie")
         val isNewAccount = lowerText.contains("novo") || lowerText.contains("nova") || lowerText.contains("primeira viagem")
 
